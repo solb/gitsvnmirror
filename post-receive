@@ -1,0 +1,18 @@
+#!/bin/sh
+
+adapterpath="../bridge" #path to adapter (non-bare, non-working) Git repo
+initcount=1 #number of initial (administrative) SVN commits
+
+unset GIT_DIR
+cd $adapterpath
+git fetch
+localcount=`git log --oneline | wc -l`
+remotecount=`git log --oneline origin/master | wc -l`
+neededcount=$(($remotecount-$localcount+$initcount))
+neededhashes=`git log --oneline --reverse -$neededcount origin/master | cut -d \  -f 1`
+for commithash in $neededhashes
+	do
+		git cherry-pick $commithash
+	done
+
+git svn dcommit

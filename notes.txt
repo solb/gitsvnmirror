@@ -1,0 +1,22 @@
+create svn repo
+===============
+1. $ svnadmin create <svn path>
+2. $ mkdir -p struct/{trunk,branches,tags}
+3. $ cd struct
+4. $ svn import <svn file:///+path>
+5. $ cd ..
+6. $ rm -r struct
+
+create Git upstream
+===================
+1. $ git init --bare <upstream path>
+2. $ cd <upstream path>/hooks
+3. $ cp <post-receive path> .
+4. $ cd ../..
+
+create Git adapter
+==================
+1. $ git svn clone -s <svn file:///+path> <adapter path>
+2. $ cd <adapter path>
+3. $ git remote add origin <upstream-.git path>
+4. $ cd ..
