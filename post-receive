@@ -31,4 +31,22 @@ for eachbranch in $remotebranches
 		git svn dcommit
 	done
 
+for eachtag in `git tag`
+	do
+		if ! ( git branch -r | tr -s \  | cut -d \  -f 2 | grep -x tags/$eachtag ) #this is a new tag
+			then
+				svn mkdir -m "Create tag $eachtag" `git config --local svn-remote.svn.url`/tags/$eachtag
+				git svn fetch
+				git checkout remotes/tags/$eachtag
+				
+				neededhashes=`git log --oneline --reverse --first-parent $eachtag | cut -d \  -f 1`
+				for commithash in $neededhashes
+					do
+						git cherry-pick $commithash || git cherry-pick -m 1 $commithash
+					done
+				
+				git svn dcommit
+			fi
+	done
+
 git checkout master
