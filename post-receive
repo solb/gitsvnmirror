@@ -5,14 +5,22 @@ initcount=1 #number of initial (administrative) SVN commits
 
 unset GIT_DIR
 cd $adapterpath
+
+git svn fetch #we assume each new branch has already been created using svn
 git fetch
-localcount=`git log --oneline | wc -l`
-remotecount=`git log --oneline origin/master | wc -l`
-neededcount=$(($remotecount-$localcount+$initcount))
-neededhashes=`git log --oneline --reverse -$neededcount origin/master | cut -d \  -f 1`
-for commithash in $neededhashes
+remotebranches=`git branch -r | grep origin/ | cut -d / -f 2`
+for eachbranch in $remotebranches
 	do
-		git cherry-pick $commithash
+		git checkout $eachbranch #we assume each new branch already exists
+		localcount=`git log --oneline | wc -l`
+		remotecount=`git log --oneline origin/$eachbranch | wc -l`
+		neededcount=$(($remotecount-$localcount+$initcount))
+		neededhashes=`git log --oneline --reverse -$neededcount origin/$eachbranch | cut -d \  -f 1`
+		for commithash in $neededhashes
+			do
+				git cherry-pick $commithash
+			done
 	done
 
 git svn dcommit
+git checkout master
