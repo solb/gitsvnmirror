@@ -10,7 +10,7 @@ git fetch
 remotebranches=`git branch -r | grep origin/ | cut -d / -f 2`
 for eachbranch in $remotebranches
 	do
-		if git branch | grep $eachbranch #this was an existing branch
+		if git branch | tr -s \  | cut -d \  -f 2 | grep -x $eachbranch #this was an existing branch
 			then
 				git checkout $eachbranch
 			else #this is a new branch
