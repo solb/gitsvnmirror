@@ -1,0 +1,6 @@
+#!/bin/sh
+
+branch=`echo $1 | cut -d / -f 3`
+newhash=$3
+
+! ( git log --oneline --first-parent --merges $newhash | cut -d \' -f 2 | grep -x $branch ) #didin't find any merge commit merging from this branch onto itself
