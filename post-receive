@@ -6,17 +6,17 @@ initcount=1 #number of initial (administrative) SVN commits per branch
 unset GIT_DIR
 cd $adapterpath
 
-git fetch
+git fetch -q
 remotebranches=`git branch -r | grep origin/ | cut -d / -f 2`
 for eachbranch in $remotebranches
 	do
-		if git branch | tr -s \  | cut -d \  -f 2 | grep -x $eachbranch #this was an existing branch
+		if git branch | tr -s \  | cut -d \  -f 2 | grep -xq $eachbranch #this was an existing branch
 			then
-				git checkout $eachbranch
+				git checkout -q $eachbranch
 			else #this is a new branch
 				svn mkdir -m "Create branch $eachbranch" `git config --local svn-remote.svn.url`/branches/$eachbranch
 				git svn fetch
-				git checkout -b $eachbranch $eachbranch
+				git checkout -qb $eachbranch remotes/$eachbranch
 			fi
 		
 		localcount=`git log --oneline --first-parent | wc -l`
@@ -25,7 +25,7 @@ for eachbranch in $remotebranches
 		neededhashes=`git log --oneline --reverse --first-parent -$neededcount origin/$eachbranch | cut -d \  -f 1`
 		for commithash in $neededhashes
 			do
-				git cherry-pick $commithash || git cherry-pick -m 1 $commithash
+				git cherry-pick $commithash > /dev/null 2> /dev/null || git cherry-pick -m 1 $commithash > /dev/null
 			done
 		
 		git svn dcommit
@@ -33,20 +33,20 @@ for eachbranch in $remotebranches
 
 for eachtag in `git tag`
 	do
-		if ! ( git branch -r | tr -s \  | cut -d \  -f 2 | grep -x tags/$eachtag ) #this is a new tag
+		if ! ( git branch -r | tr -s \  | cut -d \  -f 2 | grep -xq tags/$eachtag ) #this is a new tag
 			then
 				svn mkdir -m "Create tag $eachtag" `git config --local svn-remote.svn.url`/tags/$eachtag
 				git svn fetch
-				git checkout remotes/tags/$eachtag
+				git checkout -q remotes/tags/$eachtag
 				
 				neededhashes=`git log --oneline --reverse --first-parent $eachtag | cut -d \  -f 1`
 				for commithash in $neededhashes
 					do
-						git cherry-pick $commithash || git cherry-pick -m 1 $commithash
+						git cherry-pick $commithash > /dev/null 2> /dev/null || git cherry-pick -m 1 $commithash > /dev/null
 					done
 				
 				git svn dcommit
 			fi
 	done
 
-git checkout master
+git checkout -q master
