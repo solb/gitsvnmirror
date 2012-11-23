@@ -19,13 +19,13 @@ for eachbranch in $remotebranches
 				git checkout -b $eachbranch $eachbranch
 			fi
 		
-		localcount=`git log --oneline | wc -l`
-		remotecount=`git log --oneline origin/$eachbranch | wc -l`
+		localcount=`git log --oneline --first-parent | wc -l`
+		remotecount=`git log --oneline origin/$eachbranch --first-parent | wc -l`
 		neededcount=$(($remotecount-$localcount+$initcount))
-		neededhashes=`git log --oneline --reverse -$neededcount origin/$eachbranch | cut -d \  -f 1`
+		neededhashes=`git log --oneline --reverse --first-parent -$neededcount origin/$eachbranch | cut -d \  -f 1`
 		for commithash in $neededhashes
 			do
-				git cherry-pick $commithash
+				git cherry-pick $commithash || git cherry-pick -m 1 $commithash
 			done
 		
 		git svn dcommit
