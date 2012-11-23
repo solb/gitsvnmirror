@@ -3,4 +3,39 @@
 branch=`echo $1 | cut -d / -f 3`
 newhash=$3
 
-! ( git log --oneline --first-parent --merges $newhash | cut -d \' -f 2 | grep -x $branch ) #didin't find any merge commit merging from this branch onto itself
+if git log --oneline --first-parent --merges $newhash | cut -d \' -f 2 | grep -xq $branch #found a merge commit merging from this branch onto itself
+	then
+		echo
+		echo "POLICY: Trivial merges joining one branch with itself are forbidden"
+		echo "  (They obfuscate our version history and break SVN *hard*)"
+		echo "  These often arise automatically for one of two reasons:"
+		echo '  1. A $(git pull) encountered someone else'"'"'s concurrent changes'
+		echo "    Here's an example of how to reverse and remedy this:"
+		echo "      a. Checkout the problematic branch"
+		echo "      b. Run: $ git rebase origin/<branch name>"
+		echo "      c. Try pushing again"
+		echo "    To avoid this problem next time:"
+		echo '      Replace your use of $(git pull) with: $ git pull --rebase'
+		echo "    To automate this solution:"
+		echo "      a. Run: $ git config branch.autosetuprebase always"
+		echo "      b. For each branch: $ git config branch.<branch name>.rebase true"
+		echo '  2. A $(git merge) from a feature branch performed a fast-forward'
+		echo "    Here's an example of how to reverse and remedy this:"
+		echo "      CASE Merging onto the branch was your most recent change to it:"
+		echo "        a. Checkout the problematic branch"
+		echo "        b. Run: $ git reset --hard ORIG_HEAD"
+		echo "          DANGER, W.R.: Backup your branch, or at least your work tree"
+		echo "        c. Run: $ git merge --no-ff <feature branch>"
+		echo "        d. Try pushing again"
+		echo "      CASE You've since made other changes to the problem branch:"
+		echo "        Call the configuration manager for assistance"
+		echo "    To avoid this problem next time:"
+		echo '      Replace your use of $(git merge) with: $ git merge --no-ff'
+		echo "    To automate this solution:"
+		echo "      a. Follow the steps for automating cause 1's solution above"
+		echo "      b. Run: $ git config merge.ff false"
+		echo "  Contact the configuration manager for assistance if you're uncertain"
+		false
+	else
+		true
+	fi
