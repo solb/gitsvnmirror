@@ -1,0 +1,18 @@
+#!/bin/sh
+
+source hooks/vars.sh
+lockpath=$adapterpath/.git/$lockfile
+
+if [ -a $lockpath ] #we're locked out
+	then
+		echo
+		echo "ERROR: The SVN repository is currently locked"
+		echo "  This could either mean that someone else is pushing changes at"
+		echo "  this very moment, or that a recent push operation terminated"
+		echo "  abnormally.  Please try again after a minute or two."
+		echo "  If the problem persists, contact our configuration manager."
+		false #only allow one push and one svn dcommit at a time
+	else #no concurrent modification attempt
+		touch $lockpath
+		true
+	fi

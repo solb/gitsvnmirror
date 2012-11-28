@@ -1,6 +1,6 @@
 #!/bin/sh
 
-adapterpath="../bridge" #path to adapter (non-bare, non-working) Git repo
+source hooks/vars.sh
 initcount=1 #number of initial (administrative) SVN commits per branch
 
 unset GIT_DIR
@@ -50,3 +50,4 @@ for eachtag in `git tag`
 	done
 
 git checkout -q master
+rm .git/$lockfile #unlock for future pushes
