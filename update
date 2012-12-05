@@ -6,7 +6,7 @@ branch=`echo $1 | cut -d / -f 3`
 newhash=$3
 
 mergemsgs=`git log --oneline --first-parent --merges $newhash | cut -d \  -f 2-`
-if echo -n $mergemsgs | grep -vxqe "Merge branch '.*'.*" #someone changed a message better left alone
+if echo -n $mergemsgs | grep -vxqE "Merge (commit|branch) '.*'.*" #someone changed a message better left alone
 	then
 		echo
 		echo "POLICY: Rewording the first line of merge commits is prohibited"
