@@ -50,4 +50,4 @@ for eachtag in `git tag`
 	done
 
 git checkout -q master
-rm .git/$lockfile #unlock for future pushes
+rm .git/$lockfile .git/$lockfile$totalextension #unlock for future pushes

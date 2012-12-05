@@ -1,6 +1,7 @@
 #!/bin/sh
 
 . hooks/vars.sh
+lockpath=$adapterpath/.git/$lockfile
 branch=`echo $1 | cut -d / -f 3`
 newhash=$3
 
@@ -12,7 +13,7 @@ if echo -n $mergemsgs | grep -vxqe "Merge branch '.*'.*" #someone changed a mess
 		echo "  While it is fine to add lines after the default merge message,"
 		echo "  you are required to leave the original information intact."
 		echo "  Contact our configuration manager with questions or comments."
-		false
+		succeeded="false"
 	elif echo -n $mergemsgs | cut -d \' -f 2 | grep -xq $branch #found a merge commit merging from this branch onto itself
 		then
 			echo
@@ -45,7 +46,19 @@ if echo -n $mergemsgs | grep -vxqe "Merge branch '.*'.*" #someone changed a mess
 			echo "      a. Follow the steps for automating cause 1's solution above"
 			echo "      b. Run: $ git config merge.ff false"
 			echo "  Contact our configuration manager for assistance if you're uncertain."
-			false
+			succeeded="false"
 	else
-		true
+		succeeded="true"
+	fi
+
+if $succeeded
+	then
+		true #allow pushing this ref
+	else
+		echo -n $((`cat $lockpath`+1)) > $lockpath #increment failure count
+		if [ `cat $lockpath` -eq `cat $lockpath$totalextension` ] #we rejected ALL refs
+			then
+				rm $lockpath $lockpath$totalextension #unlock even though we've pushed nothing
+			fi
+		false #reject this ref
 	fi
