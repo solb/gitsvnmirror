@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source hooks/vars.sh
+. hooks/vars.sh
 initcount=1 #number of initial (administrative) SVN commits per branch
 
 unset GIT_DIR

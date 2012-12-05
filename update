@@ -1,5 +1,6 @@
 #!/bin/sh
 
+. hooks/vars.sh
 branch=`echo $1 | cut -d / -f 3`
 newhash=$3
 
