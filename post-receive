@@ -6,7 +6,7 @@ initcount=1 #number of initial (administrative) SVN commits per branch
 unset GIT_DIR
 cd $adapterpath
 
-git fetch -q
+git fetch --all -q
 remotebranches=`git branch -r | grep origin/ | cut -d / -f 2`
 for eachbranch in $remotebranches
 	do
@@ -33,19 +33,24 @@ for eachbranch in $remotebranches
 
 for eachtag in `git tag`
 	do
-		if ! ( git branch -r | tr -s \  | cut -d \  -f 2 | grep -xq tags/$eachtag ) #this is a new tag
+		if ! ( git ls-remote | cut -f 2 | grep -xq refs/tags/$eachtag ) #deleted from git!
 			then
-				svn mkdir -m "Create tag $eachtag" `git config --local svn-remote.svn.url`/tags/$eachtag
-				git svn fetch
-				git checkout -q remotes/tags/$eachtag
-				
-				neededhashes=`git log --oneline --reverse --first-parent $eachtag | cut -d \  -f 1`
-				for commithash in $neededhashes
-					do
-						git cherry-pick $commithash > /dev/null 2> /dev/null || git cherry-pick -m 1 $commithash > /dev/null
-					done
-				
-				git svn dcommit
+				svn delete -m "Delete tag $eachtag" `git config --local svn-remote.svn.url`/tags/$eachtag
+				git branch -dr tags/$eachtag
+				git tag -d $eachtag
+			elif ! ( git branch -r | tr -s \  | cut -d \  -f 2 | grep -xq tags/$eachtag ) #svn lacks this tag
+				then
+					svn mkdir -m "Create tag $eachtag" `git config --local svn-remote.svn.url`/tags/$eachtag
+					git svn fetch
+					git checkout -q remotes/tags/$eachtag
+					
+					neededhashes=`git log --oneline --reverse --first-parent $eachtag | cut -d \  -f 1`
+					for commithash in $neededhashes
+						do
+							git cherry-pick $commithash > /dev/null 2> /dev/null || git cherry-pick -m 1 $commithash > /dev/null
+						done
+					
+					git svn dcommit
 			fi
 	done
 
