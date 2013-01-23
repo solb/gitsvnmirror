@@ -3,6 +3,7 @@
 . hooks/vars.sh
 lockpath=$adapterpath/.git/$lockfile
 branch=`echo $1 | cut -d / -f 3`
+oldhash=$2
 newhash=$3
 
 mergemsgs=`git log --oneline --first-parent --merges $newhash | cut -d \  -f 2-`
@@ -49,6 +50,22 @@ if echo -n $mergemsgs | grep -vxqE "Merge (commit|branch) '.*'.*" #someone chang
 			succeeded="false"
 	else
 		succeeded="true"
+		parent=0
+		while git show $newhash~$(($parent+1)) > /dev/null 2> /dev/null && [ `git log $newhash~$parent | head -n 1 | cut -d \  -f 2` != $oldhash ] #haven't hit bottom of branch or known commit
+			do
+				if [ `git diff ${newhash}~$(($parent+1)) $newhash~$parent 2> /dev/null | wc -l` -eq 0 ] #no change from primary parent commit
+					then
+						echo
+						echo "POLICY: Commits introducing no new changes are banned"
+						echo "  (They are unnecessary and cannot be committed to SVN)"
+						echo "  These might occur when redundant merges are made."
+						echo "  Please double-check commits, especially merges, and eliminate empties."
+						echo "  Contact our configuration manager for assistance if you're uncertain."
+						succeeded="false"
+						break
+					fi
+				parent=$(($parent+1))
+			done
 	fi
 
 if $succeeded
